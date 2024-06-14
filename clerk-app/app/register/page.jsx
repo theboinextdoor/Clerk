@@ -3,34 +3,46 @@ import React from 'react'
 import { useState } from 'react'
 import { useSignUp } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
+import { IoEyeSharp } from "react-icons/io5";
+import { FaEyeSlash } from "react-icons/fa6";
 
 const RegisterPage = () => {
      const { isLoaded, signUp, setActive } = useSignUp();
-     const [pendingVarification, setPendingVarification] = useState(false);
+     const [pendingVerification, setPendingVerification] = useState(false);
      const [code, setCode] = useState('');
+     const [showPassword, setShowPassword] = useState(false)
+     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+     const [passwordLength, setPasswordLength] = useState(false)
+     const [passwordMatch, setPasswordMatch] = useState(true)
      const router = useRouter();
      const [userInput, setUserInput] = useState({
           firstName: "",
           lastName: "",
-          email: "",
+          emailAddress: "",
           password: "",
           confirmPassword: ""
      });
 
+     const handleShowPassword = () => {
+          setShowPassword((prev) => !prev)
+     }
+
+     const handleShowConfirmPassword = () => {
+          setShowConfirmPassword((prev) => !prev)
+     }
+
 
      // Input Change
-     const handleOnChange = (event) => {
-          const { name, value } = event.target;
+     const handleOnChange = (e) => {
+          e.preventDefault();
+          const { name, value } = e.target;
           if (name) {
-              
                setUserInput((prev) => {
                     return {
                          ...prev,
                          [name]: value
                     };
                });
-          }else{
-               console.log("There is an error....")
           }
      }
 
@@ -39,32 +51,44 @@ const RegisterPage = () => {
           e.preventDefault();
 
           // Basic validation
-          if (!userInput.email || !userInput.password || !userInput.firstName || !userInput.lastName) {
-               console.error("Missing required fields. Please fill all fields.");
+          if (!userInput.emailAddress || !userInput.password || !userInput.firstName || !userInput.lastName) {
                return;
           }
 
-          // if (userInput.password !== userInput.confirmPassword) {
-          //      console.error("Passwords do not match. Please re-enter your password.");
-          //      return;
-          // }
+          if (userInput.password.length < 7) {
+               setPasswordLength(true)
+               return;
+          }
+
+          if (userInput.password !== userInput.confirmPassword) {
+               setPasswordMatch(false)
+               return;
+          }
+          
 
           try {
-               console.log(userInput);
+
                const signUpResponse = await signUp.create({
-                    emailAddress: userInput.email,
+                    emailAddress: userInput.emailAddress, // Ensure correct field name
                     password: userInput.password,
                     firstName: userInput.firstName,
                     lastName: userInput.lastName,
-                    });
-                    
-                    console.log("SignUp Response : " , signUpResponse)
-                    
-                    // Verfiying the Email address
-                    await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-                    setPendingVarification(true);
+               });
+
+
+
+
+               await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+               setPendingVerification(true);
+
+
+               userInput.firstName = ""
+               userInput.lastName = ""
+               userInput.password = ""
+               userInput.confirmPassword = ""
+               userInput.emailAddress = ""
           } catch (error) {
-               console.error(error);
+               throw new Error(error)
           }
      };
 
@@ -82,7 +106,7 @@ const RegisterPage = () => {
                });
 
                if (completeSignUp.status !== 'complete') {
-                    console.log(JSON.stringify(completeSignUp, null, 2));
+                   
                     return; // Handle unsuccessful verification
                }
 
@@ -91,7 +115,7 @@ const RegisterPage = () => {
                });
                router.push('/'); // Redirect to home page on successful verification
           } catch (error) {
-               console.error(error);
+               throw new Error(error)
           }
      };
      return (
@@ -100,7 +124,7 @@ const RegisterPage = () => {
                     <h1 className="text-2xl mb-4 font-medium text-secondary">Register</h1>
                </div>
 
-               {pendingVarification ? (<form className="space-y-4 md:space-y-6">
+               {pendingVerification ? (<form className="space-y-4 md:space-y-6">
                     <input
                          type="text"
                          value={code}
@@ -151,15 +175,15 @@ const RegisterPage = () => {
                          </div>
 
                          <div>
-                              <label htmlFor="email" className="block mb-1 font-medium">
+                              <label htmlFor="emailAddress" className="block mb-1 font-medium">
                                    Email :
                               </label>
                               <input
                                    required
                                    type="email"
-                                   id="email"
-                                   value={userInput.email}
-                                   name="email"
+                                   id="emailAddress"
+                                   value={userInput.emailAddress}
+                                   name="emailAddress"
                                    placeholder="Enter Your Email"
                                    className="border py-2 px-1 w-full rounded-md"
                                    onChange={handleOnChange}
@@ -170,30 +194,60 @@ const RegisterPage = () => {
                               <label htmlFor="password" className="block mb-1 font-medium">
                                    Password :
                               </label>
-                              <input
-                                   required
-                                   type="password"
-                                   value={userInput.password}
-                                   id="password"
-                                   name="password"
-                                   className="border py-2 px-1 w-full rounded-md"
-                                   onChange={handleOnChange}
-                              />
+                              <div className='flex flex-col gap-1 '>
+                                   <div className='flex items-center relative'>
+                                        <input
+                                             required
+                                             type={showPassword ? "text" : "password"}
+                                             value={userInput.password}
+                                             id="password"
+                                             name="password"
+                                             className="border py-2 px-1 w-full rounded-md"
+                                             onChange={handleOnChange}
+                                        />
+                                        <div className='absolute top-2 right-3 cursor-pointer' onClick={handleShowPassword}>
+                                             {
+                                                  showPassword ? (<FaEyeSlash size={25} />) : (<IoEyeSharp size={25} />)
+                                             }
+
+                                        </div>
+                                   </div>
+                                   {
+                                        passwordLength ? (<p className='text-sm text-red-400'>password must be greateer than 8 digit</p>) : ""
+                                   }
+                              </div>
+
+
                          </div>
 
                          <div>
                               <label htmlFor="confirmPassword" className="block mb-1 font-medium">
                                    Confirm Password :
                               </label>
-                              <input
-                                   required
-                                   type="password"
-                                   id="confirmPassword"
-                                   name="confirmPassword"
-                                   value={userInput.confirmPassword}
-                                   className="border py-2 px-1 w-full rounded-md"
-                                   onChange={handleOnChange}
-                              />
+                              <div className='flex flex-col gap-1'>
+                                   <div className='flex items-center relative'>
+                                        <input
+                                             required
+                                             type={showConfirmPassword ? "text" : "password"}
+                                             id="confirmPassword"
+                                             name="confirmPassword"
+                                             value={userInput.confirmPassword}
+                                             className="border py-2 px-1 w-full rounded-md"
+                                             onChange={handleOnChange}
+                                        />
+                                        <div className='absolute top-2 right-3 cursor-pointer' onClick={handleShowConfirmPassword}>
+                                             {
+                                                  showConfirmPassword ? (<FaEyeSlash size={25} />) : (<IoEyeSharp size={25} />)
+                                             }
+
+                                        </div>
+                                   </div>
+                                   {
+                                        passwordMatch ? "" : (
+                                             <p className='text-red-400 text-sm'>Password didn't match</p>
+                                        )
+                                   }
+                              </div>
                          </div>
 
                          <button
@@ -202,6 +256,7 @@ const RegisterPage = () => {
                          >
                               Sign In
                          </button>
+
                     </form>
                )}
 

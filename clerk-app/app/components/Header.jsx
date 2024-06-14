@@ -5,7 +5,6 @@ import { UserButton } from "@clerk/nextjs";
 
 const Header = () => {
   const { userId } = auth();
-  console.log("This is the User Id : ", userId);
   return (
     <>
       <nav className="bg-primary py-4 px-6 flex items-center justify-between mb-5">
