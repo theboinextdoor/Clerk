@@ -2,7 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Header from "./components/Header";
-import { dark } from "@clerk/themes";
+import { light } from "@clerk/themes";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider appearance={
       {
-        baseTheme : dark
+        baseTheme : light
       }
     }>
       <html lang="en">
@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
           <Header />
           <mian className="container mx-auto">
             <div className="flex items-start justify-center min-h-screen">
-              <div className="mt-20">
+              <div className="mt-5">
                 {children}
               </div>
             </div>

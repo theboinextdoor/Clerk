@@ -23,11 +23,14 @@ const Header = () => {
             <UserButton />
           </div>
         ) : (
-          <div className="flex gap-3 items-center p-2 font-medium tex-lg text-white">
-            <Link href="/sign-in" className="hover:text-black">
+          <div className="flex gap-3 items-center p-2 font-medium tex-lg text-gray-200">
+            <Link href="/register" className="hover:text-white">
+              Resgister 
+            </Link>
+            <Link href="/sign-in" className="hover:text-white">
               Log In
             </Link>
-            <Link href="/sign-up" className="hover:text-black ">
+            <Link href="/sign-up" className="hover:text-white ">
               Sign Up
             </Link>
           </div>
